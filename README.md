@@ -11,9 +11,9 @@ functions.
 
 ```bash
 # Define the motley crew; this needs to happen first
-host foo alias vfoo:10.8.0.40
-host bar alias vbar:10.8.0.44
-host $EC2
+machine foo alias vfoo:10.8.0.40
+machine bar alias vbar:10.8.0.44
+machine $EC2
 
 # Add entries to ~/.bash_aliases to cd into these remote locations
 # (You need https://github.com/spencertipping/cd for this to work)
@@ -21,7 +21,7 @@ foo sshfs f1:/mnt/vol1 f2:/mnt/vol2
 bar sshfs b:/mnt/disk
 $EC2 sshfs e:/home/me
 
-# Host-specific bash aliases
+# Machine-specific bash aliases
 foo alias vpn zerovpn $vfoo -i ~/.ssh/vpn-key -p 2222 vpn@$EC2
 bar alias vpn zerovpn $vbar -i ~/.ssh/vpn-key -p 2222 vpn@$EC2
 
@@ -42,11 +42,11 @@ done
 Now use the motfile:
 
 ```sh
-$ motley modules        # print all available host-config modules
-$ motley ls             # inspect all host configurations
-$ motley ls foo         # look just at host foo
-$ motley start          # start all dockerized things, configure all hosts
+$ motley modules        # print all active modules
+$ motley ls             # inspect all configurations
+$ motley ls foo         # look just at machine foo
+$ motley start          # start all dockerized things, configure all machines
 $ motley stop           # stop dockerized things, undo configurations
-$ motley status         # check in with hosts, print status
-$ motley -f /path/to/Motfile status
+$ motley status         # check in with machines, print status
+$ motley run            # do ongoing stuff; run this from a crontab
 ```

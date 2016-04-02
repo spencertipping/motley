@@ -4,19 +4,19 @@
 
 MOTLEY_MODES=
 MOTLEY_MODULES=
-MOTLEY_HOSTS=
+MOTLEY_MACHINES=
 
 # Core functions
 # These are all defined with the motley_ prefix, then exported later by
 # modules.
-motley_host() {
+motley_machine() {
   local h=$1
   shift
-  MOTLEY_HOSTS="$MOTLEY_HOSTS $h"
+  MOTLEY_MACHINES="$MOTLEY_MACHINES $h"
   eval "$h() {"'
-    motley_${MOTLEY_MODE}_host "$@"
+    motley_${MOTLEY_MODE}_machine "$@"
   }'"
-  MOTLEY_HOST_${h//[^a-zA-Z0-9]/_}=( \"\$@\" )"
+  MOTLEY_MACHINE_${h//[^a-zA-Z0-9]/_}=( \"\$@\" )"
 }
 
 motley_defmodule() {
@@ -27,7 +27,7 @@ motley_defmode() {
   for m; do
     MOTLEY_MODES="$MOTLEY_MODES $m"
     eval "motley_${m}_init() { :; }
-          motley_${m}_host() { :; }
+          motley_${m}_machine() { :; }
           motley_${m}_end()  { :; }"
   done
 }
@@ -35,23 +35,23 @@ motley_defmode() {
 motley_splitmode() {
   for m; do
     motley_defmode $m
-    eval "motley_${m}_host() {"'
-      if [[ `hostname` = $1 ]]; then
+    eval "motley_${m}_machine() {"'
+      if [[ `machinename` = $1 ]]; then
         local cmd=$2
         shift 2
         motley_${MOTLEY_MODE}_self_$cmd "$@"
       else
-        local hostname=$1
+        local machinename=$1
         local cmd=$2
         shift 2
-        motley_${MOTLEY_MODE}_other_$cmd "$hostname" "$@"
+        motley_${MOTLEY_MODE}_other_$cmd "$machinename" "$@"
       fi
     }'
   done
 }
 
 # Informational modes
-motley_defmode modes modules hosts
+motley_defmode modes modules machines
 
 motley_modes_init() {
   for m in $MOTLEY_MODES; do
@@ -67,9 +67,9 @@ motley_modules_init() {
   exit 0
 }
 
-motley_hosts_end() {
-  for h in $MOTLEY_HOSTS; do
-    eval "echo \$h \"\${MOTLEY_HOST_${m//[^a-zA-Z0-9]/_}[@]}\""
+motley_machines_end() {
+  for h in $MOTLEY_MACHINES; do
+    eval "echo \$h \"\${MOTLEY_MACHINE_${m//[^a-zA-Z0-9]/_}[@]}\""
   done
   exit 0
 }
@@ -78,11 +78,11 @@ motley_hosts_end() {
 motley_defmode ls
 motley_splitmode start stop status
 
-motley_ls_host() {
+motley_ls_machine() {
   if (( ${#MOTLEY_ARGS} > 0 )); then
     local echo_this_one=
-    for host in "${MOTLEY_ARGS[@]}"; do
-      if [[ "$host" = "$1" ]]; then
+    for machine in "${MOTLEY_ARGS[@]}"; do
+      if [[ "$machine" = "$1" ]]; then
         echo_this_one=yes
         break
       fi
