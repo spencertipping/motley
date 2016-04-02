@@ -7,17 +7,16 @@ to do host-specific configuration.
 
 ## Usage
 First write a `Motfile`, which is a bash script that calls into motley
-functions. It doesn't really matter where you put it; `motley` will SSH into
-the other machines and configure them.
+functions.
 
 ```bash
-# Define the motley crew
+# Define the motley crew; this needs to happen first
 host foo alias vfoo:10.8.0.40
 host bar alias vbar:10.8.0.44
 host $EC2
 
 # Add entries to ~/.bash_aliases to cd into these remote locations
-# (You need to use https://github.com/spencertipping/cd for this to work)
+# (You need https://github.com/spencertipping/cd for this to work)
 foo sshfs f1:/mnt/vol1 f2:/mnt/vol2
 bar sshfs b:/mnt/disk
 $EC2 sshfs e:/home/me
@@ -35,8 +34,8 @@ for i in `seq 8`; do
   foo docker spiff$i spiff-o-matic:latest -p $((2421 + i)):22 -v /mnt
 
   # Add entries to ~/.ssh/config and ~/.bash_aliases for connection access
-  foo ssh spiff$i -p $((2421 + i))
-  foo xpra spiff$i :100 --no-keyboard-sync
+  foo ssh spiff$i -p $((2421 + i))              # alias spiff$i=...
+  foo xpra Spiff$i :100 --no-keyboard-sync      # alias Spiff$i=...
 done
 ```
 

@@ -35,12 +35,12 @@ motley_splitmode() {
       if [[ `hostname` = $1 ]]; then
         local cmd=$2
         shift 2
-        motley_${MOTLEY_MODE}_self "$cmd" "$@"
+        motley_${MOTLEY_MODE}_self_$cmd "$@"
       else
         local hostname=$1
         local cmd=$2
         shift 2
-        motley_${MOTLEY_MODE}_other "$cmd" "$hostname" "$@"
+        motley_${MOTLEY_MODE}_other_$cmd "$hostname" "$@"
       fi
     }'
   done
@@ -72,20 +72,18 @@ motley_hosts_end() {
 
 # Core operative modes
 motley_defmode ls
+motley_splitmode start stop status
 
-motley_ls_each() {
+motley_ls_host() {
   if (( ${#MOTLEY_ARGS} > 0 )); then
     local echo_this_one=
-    for arg in "${MOTLEY_ARGS[@]}"; do
-      if [[ "$arg" = "$1" ]]; then
+    for host in "${MOTLEY_ARGS[@]}"; do
+      if [[ "$host" = "$1" ]]; then
         echo_this_one=yes
         break
       fi
     done
-
-    if [[ -n "$echo_this_one" ]]; then
-      echo "$@"
-    fi
+    [[ -n "$echo_this_one" ]] && echo "$@"
   else
     echo "$@"
   fi
@@ -93,8 +91,8 @@ motley_ls_each() {
 
 # Main argument processing
 # First load any motley modules.
-for m in "$(dirname "$0")"/motley-* ~/.motley.d/*; do
-  [[ -f "$m" ]] && source "$m"
+for m in "$(dirname "$0")"/motley-* ~/.motley.d/motley-*; do
+  [[ -r "$m" ]] && source "$m"
 done
 
 # Now decide which motfile we're using and cd there.
@@ -119,3 +117,17 @@ while [[ ${1#-} != $1 ]]; do
 done
 
 cd "$(dirname "$MOTLEY_MOTFILE")"
+
+# Now set the mode based on command-line arguments, initialize modes, source
+# the motfile, and end modes.
+MOTLEY_MODE=${1:-ls}
+shift
+MOTLEY_ARGS=( "$@" )
+
+motley_${MOTLEY_MODE}_init
+if [[ -r "$MOTLEY_MOTFILE" ]]; then
+  source "$MOTLEY_MOTFILE"
+else
+  echo "motley: no Motfile present, so only informational modes will work" >&2
+fi
+motley_${MOTLEY_MODE}_end
