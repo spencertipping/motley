@@ -19,6 +19,10 @@ motley_host() {
   MOTLEY_HOST_${h//[^a-zA-Z0-9]/_}=( \"\$@\" )"
 }
 
+motley_defmodule() {
+  MOTLEY_MODULES="$MOTLEY_MODULES $@"
+}
+
 motley_defmode() {
   for m; do
     MOTLEY_MODES="$MOTLEY_MODES $m"
@@ -117,6 +121,11 @@ while [[ ${1#-} != $1 ]]; do
 done
 
 cd "$(dirname "$MOTLEY_MOTFILE")"
+
+# Load any more modules in the motfile directory.
+for m in motley-*; do
+  [[ -r "$m" ]] && source "$m"
+done
 
 # Now set the mode based on command-line arguments, initialize modes, source
 # the motfile, and end modes.
