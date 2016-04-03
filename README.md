@@ -44,7 +44,7 @@ Now use the motfile:
 ```sh
 $ motley modules        # print all active modules
 $ motley ls             # inspect all configurations
-$ motley ls foo         # look just at machine foo
+$ motley init           # configure local machine
 $ motley start          # start all dockerized things, configure all machines
 $ motley stop           # stop dockerized things, undo configurations
 $ motley status         # check in with machines, print status

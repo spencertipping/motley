@@ -1,0 +1,18 @@
+#!/bin/bash
+# Motley SSH command definition
+motley_defcommand ssh <<'EOF'
+SSH command
+Defines an SSH service endpoint, optionally creating a named entry in
+`~/.ssh/config`.
+
+  foo ssh -l myself             # always use user "myself" to connect to foo
+  foo ssh f -l myself           # create a connection f with user "myself"
+EOF
+
+motley_start_ssh_init() {
+  echo init ssh
+}
+
+motley_start_ssh_end() {
+  echo end ssh
+}

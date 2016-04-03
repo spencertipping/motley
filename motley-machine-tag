@@ -1,0 +1,32 @@
+#!/bin/bash
+# Motley module for machine tagging
+motley_defmodule machine_tag <<'EOF'
+Machine tagging
+Lets you address a group of machines using a single command.
+
+  machine foo tag work
+  machine bar tag work
+
+Now you can do this:
+
+  work docker ...
+
+  # same as this:
+  foo docker ...
+  bar docker ...
+EOF
+
+motley_machine_meta_tag() {
+  local machine_key=$1
+  local machine=$2
+  local tags=$3
+  eval "MOTLEY_MACHINE_${machine_key}_TAGS=\"\${tags//,/ }\""
+  for t in ${tags//,/ }; do
+    eval "$t=\"\$$t \$machine\""
+    eval "$t() {
+      for m in \$$t; do
+        \$m \"\$@\"
+      done
+    }"
+  done
+}

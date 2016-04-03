@@ -1,5 +1,0 @@
-#!/bin/bash
-# Motley host-definition module
-
-motley_defmodule host
-host() { motley_host "$@"; }
