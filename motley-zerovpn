@@ -2,11 +2,44 @@
 # Motley zerovpn configuration
 motley_defmodule zerovpn <<'EOF'
 Zerovpn command
-Defines a zerovpn client connection that will be stored as a bash alias.
+Defines a zerovpn client connection that will be stored as a bash alias. Usage:
+
+  machine m1
+  machine m2
+  m1 zerovpn v0 10.8.0.10 -p 2222 -i ~/.ssh/vpn-key vpn@server
+  m2 zerovpn v0 10.8.0.12 -p 2222 -i ~/.ssh/vpn-key vpn@server
+
+This creates a bash alias v0 that will connect to the vpn. Note that this
+applies only to machine m; this is why you can have a bunch of machines, each
+with a different VPN configuration.
 EOF
 
+motley_defmode conf
 motley_defcommand zerovpn
 
+motley_zerovpn_conf_init() {
+  motley_confedit motley_zerovpn_bashaliases ~/.bash_aliases
+}
+
+motley_zerovpn_conf_end() {
+  motley_confedit_commit motley_zerovpn_bashaliases
+}
+
 motley_zerovpn() {
-  echo "zerovpn: $@"
+  local machine_key=$1
+  local machine=$2
+  local name=$3
+  shift 3
+
+  local quoted=
+  for a; do
+    quoted="$quoted $(printf %q "$a")"
+  done
+
+  # The zerovpn alias belongs just to the machine being addressed; other
+  # machines can ignore it.
+  if [[ $MOTLEY_SELF = $machine ]]; then
+    echo "alias $(motley_alias_name "$name")='$quoted'" \
+      >> "$motley_zerovpn_bashaliases"
+  fi
 }

@@ -1,0 +1,13 @@
+machine $(hostname)
+machine other
+
+interval every_time :
+interval every_10s    '((dM + Sl / 10 - S / 10))'
+interval every_minute '((dM))'
+
+$(hostname) every_time   date
+$(hostname) every_10s    echo every ten seconds
+$(hostname) every_minute echo minute changed
+
+other every_time \
+  echo "this interval won't run since it belongs to another machine"

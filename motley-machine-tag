@@ -16,6 +16,18 @@ Now you can do this:
   bar docker ...
 EOF
 
+motley_machine_applies_if motley_machine_tags_match
+
+motley_machine_tags_match() {
+  local machine=$1
+  shift
+  for machine_or_tag; do
+    eval "local machines=\"\$$machine_or_tag \""
+    [[ "${machines/ $machine /}" != "$machines" ]] && return 0
+  done
+  return 1
+}
+
 motley_machine_meta_tag() {
   local machine_key=$1
   local machine=$2

@@ -10,8 +10,24 @@ example:
   f xpra F :100 --no-keyboard-sync      # aliases F to connect to f:100
 EOF
 
+motley_defmode conf
 motley_defcommand xpra
 
-motley_xpra() {
-  echo "xpra: $@"
+motley_xpra_init_conf() {
+  motley_confedit motley_xpra_bashaliases ~/.bash_aliases
+}
+
+motley_xpra_end_conf() {
+  motley_confedit_commit motley_xpra_bashaliases
+}
+
+motley_xpra_conf() {
+  local machine_key=$1
+  local machine=$2
+  local name=$3
+  local display=$4
+  shift 4
+
+  echo "alias $(motley_alias_name $name)='xpra attach ssh:$name$display $*'" \
+    >> "$motley_xpra_bashaliases"
 }

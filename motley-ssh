@@ -17,21 +17,29 @@ Naming SSH connections is done by creating entries in ~/.ssh/config. Any such
 names will have corresponding bash aliases.
 EOF
 
+motley_defmode conf
 motley_defcommand ssh
 
-motley_ssh_init() { motley_confedit motley_ssh_config ~/.ssh/config; }
-motley_ssh_end()  { motley_confedit_commit motley_ssh_config; }
+motley_ssh_init_conf() {
+  motley_confedit motley_ssh_config      ~/.ssh/config
+  motley_confedit motley_ssh_bashaliases ~/.bash_aliases
+}
+
+motley_ssh_end_conf() {
+  motley_confedit_commit motley_ssh_config
+  motley_confedit_commit motley_ssh_bashaliases
+}
 
 motley_ssh_options_to_config() {
   while (( $# )); do
     case $1 in
-      -l) echo "User $2";               shift 2 ;;
-      -p) echo "Port $2";               shift 2 ;;
-      -i) echo "IdentityFile $2";       shift 2 ;;
-      -o) echo "$2";                    shift 2 ;;
-      -C) echo "Compression yes";       shift 1 ;;
-      -X) echo "ForwardX11 yes";        shift 1 ;;
-      -Y) echo "ForwardX11Trusted yes"; shift 1 ;;
+      -l) echo "  User $2";               shift 2 ;;
+      -p) echo "  Port $2";               shift 2 ;;
+      -i) echo "  IdentityFile $2";       shift 2 ;;
+      -o) echo "  $2";                    shift 2 ;;
+      -C) echo "  Compression yes";       shift 1 ;;
+      -X) echo "  ForwardX11 yes";        shift 1 ;;
+      -Y) echo "  ForwardX11Trusted yes"; shift 1 ;;
       *)
         echo "motley: unsure how to convert $1 to ~/.ssh/config syntax" >&2
         echo "        (ignoring this for now, but it's probably a bug)" >&2
@@ -42,20 +50,38 @@ motley_ssh_options_to_config() {
   done
 }
 
-motley_ssh() {
+motley_ssh_conf() {
   # Are we defining a named alias? If so, then create a new "machine" that will
   # use it. This works because as far as motley is concerned, commands are
   # going to an entirely different place.
-  local machine_key=$1
-  local machine=$2
-  local mode=$3
-  shift 3
+  if [[ "${3#-}" = "$3" ]]; then
+    machine $3
+    local machine_key=$1
+    local machine=$2
+    shift 2
 
-  if [[ ${1#-} = $1 ]]; then
-    machine $1
-    echo "TODO: update ssh config (1)"
+    echo "alias $(motley_alias_name "$1")='ssh $1'" \
+      >> "$motley_ssh_bashaliases"
+
+    {
+      echo "Host $1"
+      echo "  HostName $machine"
+      shift
+      motley_ssh_options_to_config "$@"
+    } >> "$motley_ssh_config"
   else
     # Set machine-level defaults for SSH connection
-    echo "TODO: update ssh config (2)"
+    local machine_key=$1
+    local machine=$2
+    shift 2
+
+    echo "alias $(motley_alias_name "$machine")='ssh $machine'" \
+      >> "$motley_ssh_bashaliases"
+
+    {
+      echo "Host $machine"
+      echo "  HostName $machine"
+      motley_ssh_options_to_config "$@"
+    } >> "$motley_ssh_config"
   fi
 }

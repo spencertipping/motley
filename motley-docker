@@ -11,15 +11,60 @@ You can also specify the source path for a docker image:
 
   machine foo
   foo docker_source /path/to/source image-name
+
+Docker images are built with dbuild, run with drun, and stopped/removed with
+drm. drm requires explicit hostnames just because it's an accident waiting to
+happen otherwise.
+
+  motley dbuild [host...]  # builds all docker images on host, or all hosts
+  motley drun [host...]    # creates all docker containers
+  motley drm host...       # stops+deletes all docker containers
 EOF
+
+motley_defmode dbuild
+motley_defmode drun
+motley_defmode drm
 
 motley_defcommand docker
 motley_defcommand docker_source
 
-motley_docker() {
-  echo "docker: $@"
+motley_docker_source_dbuild() {
+  local machine_key=$1
+  local machine=$2
+  local path=$3
+  local iname=$4
+
+  (( !${#MOTLEY_ARGS[@]} )) \
+    || motley_machine_applies "$machine" "${MOTLEY_ARGS[@]}" \
+    && ssh "$machine" sh -c "docker build -t '$iname' $(printf %q "$path")"
 }
 
-motley_docker_source() {
-  echo "docker_source: $@"
+motley_docker_drun() {
+  local machine_key=$1
+  local machine=$2
+  local cname=$3
+  local iname=$4
+  shift 4
+
+  local quoted_args=
+  for a; do
+    quoted_args="$quoted_args $(printf %q "$a")"
+  done
+
+  (( !${#MOTLEY_ARGS[@]} )) \
+    || motley_machine_applies "$machine" "${MOTLEY_ARGS[@]}" \
+    && ssh "$machine" sh -c "
+         [ -z \`docker ps -aq --filter name='$cname'\` ] \
+           && docker run -d --name '$cname' --hostname '$cname' \
+                     $quoted_args '$iname'"
+}
+
+motley_docker_drm() {
+  local machine_key=$1
+  local machine=$2
+  local cname=$3
+
+  motley_machine_applies "$machine" "${MOTLEY_ARGS[@]}" \
+    && ssh "$machine" sh -c "
+         docker rm -f \`docker ps -aq --filter name='$cname'\`"
 }

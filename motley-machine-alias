@@ -15,6 +15,18 @@ Aliases behave in two ways:
   ssh $bar ...                          # $bar = 192.168.0.24
 EOF
 
+motley_machine_applies_if motley_machine_alias_matches
+
+motley_machine_alias_matches() {
+  local machine=$1
+  shift
+  for machine_or_alias; do
+    eval "local amachine=\$MOTLEY_ALIAS_$machine_or_alias"
+    [[ "$amachine" = "$machine" ]] && return 0
+  done
+  return 1
+}
+
 motley_machine_meta_alias() {
   local machine_key=$1
   local machine=$2
@@ -23,6 +35,7 @@ motley_machine_meta_alias() {
   local ahost=${alias#*=}
 
   eval "MOTLEY_MACHINE_${machine_key}_ALIASES=\"\$MOTLEY_MACHINE_${machine_key}_ALIASES \$aname\""
+  eval "MOTLEY_ALIAS_$aname=\$machine"
   eval "$aname=\$ahost"
   eval "$aname() { $machine_key \"\$@\"; }"
 }

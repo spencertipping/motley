@@ -1,0 +1,82 @@
+#!/bin/bash
+# Motley interval functions
+motley_defmodule interval <<'EOF'
+Interval functions
+This integrates with the run mode to provide crontab-style functionality. For
+example, you could write a module that contained something like this:
+
+  machine m1
+  machine m2
+  interval hourly '((dh != 0))'         # this is builtin already
+  m1 hourly rsync -a ~/foo m2:foo
+
+Then 'motley run' will cause m1 to execute the rsync command at most once per
+hour, when the hour has changed since the last time 'motley run' was executed.
+
+Interval specifications are arbitrary bash commands that have access to a
+series of variables describing the current time and the change since the last
+time the command was executed. This means you can predicate on external
+conditions; for example, you could avoid stacking up rsync backups like this:
+
+  interval rsync_hourly '((dh != 0)) && ! pgrep rsync > /dev/null'
+  m1 rsync_hourly rsync ...
+  m1 rsync_hourly rsync ...
+
+It's ok to do this because each command blocks; the second one won't start
+until the first is complete -- so although the interval condition is
+reevaluated, the first rsync won't be visible to pgrep.
+EOF
+
+MOTLEY_INTERVALS=
+MOTLEY_INTERVAL_LAST=~/.motley/interval-last
+MOTLEY_INTERVAL_CURRENT=
+
+motley_defcommand interval_internal
+
+motley_interval_internal_init_run() {
+  # Just some standard intervals defined by changes in fields: "when the hour
+  # changes", "when the day changes", etc.
+  interval hourly  '((dh))'
+  interval daily   '((dd))'
+  interval weekly  '((dW))'
+  interval monthly '((dm))'
+}
+
+motley_interval_internal_end_run() {
+  mkdir -p "$(dirname "$MOTLEY_INTERVAL_LAST")"
+  echo "${MOTLEY_INTERVAL_CURRENT//=/l=}" > "$MOTLEY_INTERVAL_LAST"
+}
+
+interval() {
+  local name=$1
+  local cond=$2
+
+  MOTLEY_INTERVALS="$MOTLEY_INTERVALS $name"
+  eval "MOTLEY_INTERVAL_$name=\$cond"
+
+  motley_defcommand $name
+  eval "motley_${name}_run() {"'
+    local machine_key=$1
+    local machine=$2
+
+    if [[ $MOTLEY_SELF = $machine ]]; then
+      [[ -n "$MOTLEY_INTERVAL_CURRENT" ]] \
+        || MOTLEY_INTERVAL_CURRENT=$(\
+             date +"y=%Y; m=%m; d=%d; h=%h; M=%M; S=%S; D=%w; w=%W" \
+               | sed -r "s/=0+/=/g")
+
+      local yl=0 ml=0 dl=0 hl=0 Ml=0 Sl=0 Dl=0 Wl=0
+      local y    m    d    h    M    S    D    W
+      [[ -r "$MOTLEY_INTERVAL_LAST" ]] && eval "$(<"$MOTLEY_INTERVAL_LAST")"
+      eval "$MOTLEY_INTERVAL_CURRENT"
+      local dy=$((y - yl)) dm=$((m - ml)) dd=$((d - dl))
+      local dh=$((h - hl)) dM=$((M - Ml)) dS=$((S - Sl))
+      local dD=$((D - Dl)) dW=$((W - Wl))
+
+      shift 2
+      if '"$cond"'; then
+        "$@"
+      fi
+    fi
+  }'
+}

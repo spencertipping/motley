@@ -17,16 +17,24 @@ motley_defmodule() {
 
 motley_defmode() {
   for m; do
-    MOTLEY_MODES="$MOTLEY_MODES $m"
-    eval "motley_${m}_init() { :; }
-          motley_${m}_end()  { :; }
-          motley_${m}_machine() {
-            local machine_key=\$1
-            local machine=\$2
-            local cmd=\$3
-            shift 3
-            motley_\$cmd \"\$machine_key\" \"\$machine\" $m \"\$@\"
-          }"
+    if [[ "${MOTLEY_MODES/ $m /}" = "$MOTLEY_MODES" ]]; then
+      MOTLEY_MODES="$MOTLEY_MODES $m "
+      eval "motley_${m}_init() { :; }
+            motley_${m}_end()  { :; }
+            motley_${m}_machine() {
+              local machine_key=\$1
+              local machine=\$2
+              local cmd=\$3
+              shift 3
+              motley_\${cmd}_${m} \"\$machine_key\" \"\$machine\" \"\$@\"
+            }"
+
+      for c in $MOTLEY_COMMANDS; do
+        eval "motley_${c}_init_${m}() { :; }
+              motley_${c}_${m}()      { :; }
+              motley_${c}_end_${m}()  { :; }"
+      done
+    fi
   done
 }
 
@@ -67,7 +75,6 @@ motley_modules_init() {
 
 # Core operative modes
 motley_defmode machines ls
-motley_defmode conf start stop status run
 
 motley_machines_end() {
   for m in $MOTLEY_MACHINES; do
@@ -84,10 +91,39 @@ motley_ls_machine() {
 motley_defcommand() {
   for c; do
     MOTLEY_COMMANDS="$MOTLEY_COMMANDS $c"
-    eval "motley_${c}_init() { :; }
-          motley_${c}()      { :; }
-          motley_${c}_end()  { :; }"
+    for m in $MOTLEY_MODES; do
+      eval "motley_${c}_init_${m}() { :; }
+            motley_${c}_${m}()      { :; }
+            motley_${c}_end_${m}()  { :; }"
+    done
   done
+}
+
+# Machine application
+# A lot of motley modes will predicate on machines and let you specify them on
+# the command line as arguments. To simplify the logic involved, we provide a
+# function 'motley_machine_applies' that works like this:
+#
+#   if motley_machine_applies foo "${MOTLEY_ARGS[@]}"; then
+#     echo you selected foo
+#   fi
+
+MOTLEY_MACHINE_APPLIES_IF=
+motley_machine_applies_if() {
+  MOTLEY_MACHINE_APPLIES_IF="$MOTLEY_MACHINE_APPLIES_IF $*"
+}
+
+motley_machine_applies() {
+  # It obviously applies if it's in the arguments list.
+  local m=$1
+  shift
+  for a; do
+    [[ "$m" = "$a" ]] && return 0
+  done
+  for f in $MOTLEY_MACHINE_APPLIES_IF; do
+    f "$m" "$@" && return 0
+  done
+  return 1
 }
 
 # Main argument processing
@@ -141,6 +177,7 @@ while [[ ${1#-} != $1 ]]; do
 done
 
 cd "$(dirname "$MOTLEY_MOTFILE")"
+MOTLEY_MOTFILE=$(basename "$MOTLEY_MOTFILE")
 
 # Load any more modules in the motfile directory.
 for m in motley-*; do
@@ -155,7 +192,7 @@ MOTLEY_ARGS=( "$@" )
 
 motley_${MOTLEY_MODE}_init
 for c in $MOTLEY_COMMANDS; do
-  motley_${c}_init $MOTLEY_MODE
+  motley_${c}_init_${MOTLEY_MODE}
 done
 
 if [[ -r "$MOTLEY_MOTFILE" ]]; then
@@ -166,5 +203,5 @@ fi
 
 motley_${MOTLEY_MODE}_end
 for c in $MOTLEY_COMMANDS; do
-  motley_${c}_end $MOTLEY_MODE
+  motley_${c}_end_${MOTLEY_MODE}
 done
