@@ -127,8 +127,28 @@ while [[ ${1#-} != $1 ]]; do
       shift 2
       ;;
 
+    # Help about something; either a module or a command
     -h)
-      motley_usage
+      if [[ -n "$2" ]]; then
+        eval "echo \"\$MOTLEY_MODULE_DOC_$2\$MOTLEY_COMMAND_DOC_$2\" >&2"
+        echo
+      else
+        {
+          echo "motley usage:"
+          echo "  motley [-f /path/Motfile] mode [args...]"
+          echo
+          echo "where modes are"
+          for m in $MOTLEY_MODES; do
+            echo "- $m"
+          done
+          echo
+          echo "help topics (e.g. motley -h topic):"
+          for m in $MOTLEY_MODULES $MOTLEY_COMMANDS; do
+            echo "- $m"
+          done | sort
+          echo
+        } >&2
+      fi
       exit 0
       ;;
 

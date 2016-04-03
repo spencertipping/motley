@@ -11,19 +11,19 @@ functions.
 
 ```bash
 # Define the motley crew; this needs to happen first
-machine foo alias vfoo:10.8.0.40
-machine bar alias vbar:10.8.0.44
-machine $EC2
+machine foo  alias vfoo=10.8.0.40
+machine bar  alias vbar=10.8.0.44
+machine $ec2 alias ec2
 
 # Add entries to ~/.bash_aliases to cd into these remote locations
 # (You need https://github.com/spencertipping/cd for this to work)
 foo sshfs f1:/mnt/vol1 f2:/mnt/vol2
 bar sshfs b:/mnt/disk
-$EC2 sshfs e:/home/me
+ec2 sshfs e:/home/me
 
 # Machine-specific bash aliases
-foo alias vpn zerovpn $vfoo -i ~/.ssh/vpn-key -p 2222 vpn@$EC2
-bar alias vpn zerovpn $vbar -i ~/.ssh/vpn-key -p 2222 vpn@$EC2
+foo alias vpn zerovpn $vfoo -i ~/.ssh/vpn-key -p 2222 vpn@$ec2
+bar alias vpn zerovpn $vbar -i ~/.ssh/vpn-key -p 2222 vpn@$ec2
 
 # Tell foo how to build the spiff-o-matic:latest docker image
 foo docker-source ~/spiff-o-matic spiff-o-matic:latest
@@ -34,8 +34,8 @@ for i in `seq 8`; do
   foo docker spiff$i spiff-o-matic:latest -p $((2421 + i)):22 -v /mnt
 
   # Add entries to ~/.ssh/config and ~/.bash_aliases for connection access
-  foo ssh spiff$i -p $((2421 + i))              # alias spiff$i=...
-  foo xpra Spiff$i :100 --no-keyboard-sync      # alias Spiff$i=...
+  foo ssh spiff$i -p $((2421 + i))                  # alias spiff$i=...
+  spiff$i xpra Spiff$i :100 --no-keyboard-sync      # alias Spiff$i=...
 done
 ```
 
