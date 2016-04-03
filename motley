@@ -86,7 +86,7 @@ motley_machines_end() {
 
 # Core operative modes
 motley_defmode ls
-motley_splitmode start stop status run
+motley_splitmode conf start stop status run
 
 motley_ls_machine() {
   shift

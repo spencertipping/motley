@@ -3,16 +3,28 @@
 motley_defcommand ssh <<'EOF'
 SSH command
 Defines an SSH service endpoint, optionally creating a named entry in
-`~/.ssh/config`.
+~/.ssh/config.
 
   foo ssh -l myself             # always use user "myself" to connect to foo
   foo ssh f -l myself           # create a connection f with user "myself"
+  foo ssh f                     # create a connection f for host foo
+
+If you name an SSH connection, you can refer to it as if it were a machine:
+
+  f docker ...                  # configure docker using ssh connection f
+
+Naming SSH connections is done by creating entries in ~/.ssh/config. Any such
+names will have corresponding bash aliases.
 EOF
 
-motley_start_ssh_init() {
+motley_conf_other_ssh() {
+  echo other ssh: "$@"
+}
+
+motley_conf_ssh_init() {
   echo init ssh
 }
 
-motley_start_ssh_end() {
+motley_conf_ssh_end() {
   echo end ssh
 }
