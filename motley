@@ -26,7 +26,8 @@ motley_defmode() {
               local machine=\$2
               local cmd=\$3
               shift 3
-              motley_\${cmd}_${m} \"\$machine_key\" \"\$machine\" \"\$@\"
+              motley_\${cmd}_all  \"\$machine_key\" \"\$machine\" '$m' \"\$@\"
+              motley_\${cmd}_${m} \"\$machine_key\" \"\$machine\"      \"\$@\"
             }"
 
       for c in $MOTLEY_COMMANDS; do
@@ -83,8 +84,13 @@ motley_machines_end() {
 }
 
 motley_ls_machine() {
+  local machine_key=$1
   shift
   echo "$@"
+  local machine=$1
+  local cmd=$2
+  shift 2
+  motley_${cmd}_all "$machine_key" "$machine" '$m' "$@"
 }
 
 # Command definitions
@@ -92,7 +98,8 @@ motley_defcommand() {
   for c; do
     MOTLEY_COMMANDS="$MOTLEY_COMMANDS $c"
     for m in $MOTLEY_MODES; do
-      eval "motley_${c}_init_${m}() { :; }
+      eval "motley_${c}_all()       { :; }
+            motley_${c}_init_${m}() { :; }
             motley_${c}_${m}()      { :; }
             motley_${c}_end_${m}()  { :; }"
     done
@@ -121,7 +128,7 @@ motley_machine_applies() {
     [[ "$m" = "$a" ]] && return 0
   done
   for f in $MOTLEY_MACHINE_APPLIES_IF; do
-    f "$m" "$@" && return 0
+    $f "$m" "$@" && return 0
   done
   return 1
 }
