@@ -22,7 +22,7 @@ motley_machine_meta_alias() {
   local aname=${alias%%=*}
   local ahost=${alias#*=}
 
-  eval "MOTLEY_MACHINE_${1}_ALIASES=\"\$MOTLEY_MACHINE_${1}_ALIASES \$aname\""
+  eval "MOTLEY_MACHINE_${machine_key}_ALIASES=\"\$MOTLEY_MACHINE_${machine_key}_ALIASES \$aname\""
   eval "$aname=\$ahost"
   eval "$aname() { $machine_key \"\$@\"; }"
 }

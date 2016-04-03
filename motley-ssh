@@ -21,14 +21,15 @@ motley_defcommand ssh
 
 motley_ssh() {
   # Are we defining a named alias? If so, then create a new "machine" that will
-  # use it.
+  # use it. This works because as far as motley is concerned, commands are
+  # going to an entirely different place.
   local machine_key=$1
   local machine=$2
   local mode=$3
   shift 3
 
   if [[ ${1#-} = $1 ]]; then
-    machine $1 alias $machine_key
+    machine $1
     echo "TODO: update ssh config (1)"
   else
     # Set machine-level defaults for SSH connection
