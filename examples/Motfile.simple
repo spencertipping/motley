@@ -1,0 +1,6 @@
+#!/bin/bash
+# Simple example motfile
+machine foo
+foo ssh f
+f sshfs f1:/home/user
+f docker hello-world hello-world:latest

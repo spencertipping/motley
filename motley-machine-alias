@@ -24,5 +24,5 @@ motley_machine_meta_alias() {
 
   eval "MOTLEY_MACHINE_${1}_ALIASES=\"\$MOTLEY_MACHINE_${1}_ALIASES \$aname\""
   eval "$aname=\$ahost"
-  eval "$aname() { \$machine_key \"\$@\"; }"
+  eval "$aname() { $machine_key \"\$@\"; }"
 }

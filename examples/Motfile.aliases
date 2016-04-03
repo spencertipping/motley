@@ -1,0 +1,4 @@
+#!/bin/bash
+# Motfile demonstrating aliases
+machine foo alias bar
+bar docker hello-world hello-world:latest
