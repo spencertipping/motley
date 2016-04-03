@@ -19,6 +19,29 @@ EOF
 
 motley_defcommand ssh
 
+motley_ssh_init() { motley_confedit motley_ssh_config ~/.ssh/config; }
+motley_ssh_end()  { motley_confedit_commit motley_ssh_config; }
+
+motley_ssh_options_to_config() {
+  while (( $# )); do
+    case $1 in
+      -l) echo "User $2";               shift 2 ;;
+      -p) echo "Port $2";               shift 2 ;;
+      -i) echo "IdentityFile $2";       shift 2 ;;
+      -o) echo "$2";                    shift 2 ;;
+      -C) echo "Compression yes";       shift 1 ;;
+      -X) echo "ForwardX11 yes";        shift 1 ;;
+      -Y) echo "ForwardX11Trusted yes"; shift 1 ;;
+      *)
+        echo "motley: unsure how to convert $1 to ~/.ssh/config syntax" >&2
+        echo "        (ignoring this for now, but it's probably a bug)" >&2
+        echo "        a workaround is to use '-o ...' instead"          >&2
+        shift
+        ;;
+    esac
+  done
+}
+
 motley_ssh() {
   # Are we defining a named alias? If so, then create a new "machine" that will
   # use it. This works because as far as motley is concerned, commands are
@@ -35,12 +58,4 @@ motley_ssh() {
     # Set machine-level defaults for SSH connection
     echo "TODO: update ssh config (2)"
   fi
-}
-
-motley_ssh_init() {
-  echo init ssh
-}
-
-motley_ssh_end() {
-  echo end ssh
 }

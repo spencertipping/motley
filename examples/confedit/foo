@@ -1,7 +1,7 @@
 This is a test file.
 We should end up with four test lines after the motley gen tag below.
 
-MOTLEYGEN
+# MOTLEYGEN
 test 1
 test 2
 test 3
