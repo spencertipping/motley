@@ -2,16 +2,36 @@
 # https://github.com/spencertipping/motley
 # MIT license
 
-MOTLEY_MODES=                   # informational modes
-MOTLEY_SPLITMODES=              # acting modes
-MOTLEY_COMMANDS=                # NB: we assume these are all for split modes
+MOTLEY_MODES=
+MOTLEY_COMMANDS=
 MOTLEY_MODULES=
 MOTLEY_MACHINES=
 
+MOTLEY_SELF=$(hostname)
+
 # Core functions
-# These are all defined with the motley_ prefix, then exported later by
-# modules.
-motley_machine() {
+motley_defmodule() {
+  MOTLEY_MODULES="$MOTLEY_MODULES $1"
+  eval "MOTLEY_MODULE_DOC_$1=\"\$(cat)\""
+}
+
+motley_defmode() {
+  for m; do
+    MOTLEY_MODES="$MOTLEY_MODES $m"
+    eval "motley_${m}_init() { :; }
+          motley_${m}_end()  { :; }
+          motley_${m}_machine() {
+            local machine_key=\$1
+            local machine=\$2
+            local cmd=\$3
+            shift 3
+            motley_\$cmd \"\$machine_key\" \"\$machine\" $m \"\$@\"
+          }"
+  done
+}
+
+# Machine definition function
+machine() {
   local machine=$1
   local machine_key=${machine//[^A-Za-z0-9]/_}
   shift
@@ -26,67 +46,34 @@ motley_machine() {
   done
 }
 
-motley_defmodule() {
-  MOTLEY_MODULES="$MOTLEY_MODULES $1"
-  eval "MOTLEY_MODULE_DOC_$1=\"\$(cat)\""
-}
-
-motley_defmode() {
-  for m; do
-    MOTLEY_MODES="$MOTLEY_MODES $m"
-    eval "motley_${m}_init() { :; }
-          motley_${m}_machine() { :; }
-          motley_${m}_end()  { :; }"
-  done
-}
-
-motley_splitmode() {
-  for m; do
-    motley_defmode $m
-    MOTLEY_SPLITMODES="$MOTLEY_SPLITMODES $m"
-    eval "motley_${m}_machine() {"'
-      if [[ `hostname` = $1 ]]; then
-        local cmd=$3
-        shift 3
-        motley_${MOTLEY_MODE}_self_$cmd "$@"
-      else
-        local machine_key=$1
-        local machine=$2
-        local cmd=$3
-        shift 3
-        motley_${MOTLEY_MODE}_other_$cmd "$machine_key" "$machine" "$@"
-      fi
-    }'
-  done
-}
-
-# Informational modes
-motley_defmode modes modules machines
+# Informational modes (these bypass the Motfile)
+motley_defmode modes modules
 
 motley_modes_init() {
+  echo "available modes:"
   for m in $MOTLEY_MODES; do
-    echo $m
+    echo "- $m"
   done
   exit 0
 }
 
 motley_modules_init() {
+  echo "available modules:"
   for m in $MOTLEY_MODULES; do
-    echo $m
-  done
-  exit 0
-}
-
-motley_machines_end() {
-  for h in $MOTLEY_MACHINES; do
-    eval "echo \$h \"\${MOTLEY_MACHINE_${m//[^a-zA-Z0-9]/_}[@]}\""
+    echo "- $m"
   done
   exit 0
 }
 
 # Core operative modes
-motley_defmode ls
-motley_splitmode conf start stop status run
+motley_defmode machines ls
+motley_defmode conf start stop status run
+
+motley_machines_end() {
+  for m in $MOTLEY_MACHINES; do
+    echo $m
+  done
+}
 
 motley_ls_machine() {
   shift
@@ -95,25 +82,16 @@ motley_ls_machine() {
 
 # Command definitions
 motley_defcommand() {
-  MOTLEY_COMMANDS="$MOTLEY_COMMANDS $1"
-  eval "MOTLEY_COMMAND_DOC_$1=\"\$(cat)\""
-
-  for m in $MOTLEY_MODES; do
-    eval "motley_${m}_${1}_init() { :; }
-          motley_${m}_${1}_end()  { :; }"
-  done
-
-  for m in $MOTLEY_SPLITMODES; do
-    eval "motley_${m}_${1}_init() { :; }
-          motley_${m}_self_${1}() { :; }
-          motley_${m}_other_${1}() { :; }
-          motley_${m}_${1}_end() { :; }"
+  for c; do
+    MOTLEY_COMMANDS="$MOTLEY_COMMANDS $c"
+    eval "motley_${c}_init() { :; }
+          motley_${c}()      { :; }
+          motley_${c}_end()  { :; }"
   done
 }
 
 # Main argument processing
 # First load any motley modules.
-machine() { motley_machine "$@"; }
 for m in "$(dirname "$0")"/motley-* ~/.motley.d/motley-*; do
   [[ -r "$m" ]] && source "$m"
 done
@@ -127,23 +105,26 @@ while [[ ${1#-} != $1 ]]; do
       shift 2
       ;;
 
-    # Help about something; either a module or a command
+    # Help about a module or general usage
     -h)
       if [[ -n "$2" ]]; then
-        eval "echo \"\$MOTLEY_MODULE_DOC_$2\$MOTLEY_COMMAND_DOC_$2\" >&2"
-        echo
+        {
+          eval "echo \"\$MOTLEY_MODULE_DOC_$2\""
+          echo
+        } >&2
       else
         {
           echo "motley usage:"
-          echo "  motley [-f /path/Motfile] mode [args...]"
+          echo "  motley [-f /path/to/Motfile] mode [args...]"
+          echo "  motley -h [topic]"
           echo
           echo "where modes are"
           for m in $MOTLEY_MODES; do
             echo "- $m"
           done
           echo
-          echo "help topics (e.g. motley -h topic):"
-          for m in $MOTLEY_MODULES $MOTLEY_COMMANDS; do
+          echo "help topics (motley -h topic):"
+          for m in $MOTLEY_MODULES; do
             echo "- $m"
           done | sort
           echo
@@ -174,16 +155,16 @@ MOTLEY_ARGS=( "$@" )
 
 motley_${MOTLEY_MODE}_init
 for c in $MOTLEY_COMMANDS; do
-  motley_${MOTLEY_MODE}_${c}_init
+  motley_${c}_init $MOTLEY_MODE
 done
 
 if [[ -r "$MOTLEY_MOTFILE" ]]; then
   source "$MOTLEY_MOTFILE"
 else
-  echo "motley: no Motfile present, so only informational modes will work" >&2
+  echo "motley: no Motfile present (try motley -h for help)" >&2
 fi
 
 motley_${MOTLEY_MODE}_end
 for c in $MOTLEY_COMMANDS; do
-  motley_${MOTLEY_MODE}_${c}_end
+  motley_${c}_end $MOTLEY_MODE
 done

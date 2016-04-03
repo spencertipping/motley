@@ -1,6 +1,6 @@
 #!/bin/bash
 # Motley SSH command definition
-motley_defcommand ssh <<'EOF'
+motley_defmodule ssh <<'EOF'
 SSH command
 Defines an SSH service endpoint, optionally creating a named entry in
 ~/.ssh/config.
@@ -17,14 +17,29 @@ Naming SSH connections is done by creating entries in ~/.ssh/config. Any such
 names will have corresponding bash aliases.
 EOF
 
-motley_conf_other_ssh() {
-  echo other ssh: "$@"
+motley_defcommand ssh
+
+motley_ssh() {
+  # Are we defining a named alias? If so, then create a new "machine" that will
+  # use it.
+  local machine_key=$1
+  local machine=$2
+  local mode=$3
+  shift 3
+
+  if [[ ${1#-} = $1 ]]; then
+    machine $1 alias $machine_key
+    echo "TODO: update ssh config (1)"
+  else
+    # Set machine-level defaults for SSH connection
+    echo "TODO: update ssh config (2)"
+  fi
 }
 
-motley_conf_ssh_init() {
+motley_ssh_init() {
   echo init ssh
 }
 
-motley_conf_ssh_end() {
+motley_ssh_end() {
   echo end ssh
 }
