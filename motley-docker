@@ -1,0 +1,25 @@
+#!/bin/bash
+# Motley docker command definition
+motley_defmodule docker <<'EOF'
+Docker command
+Defines a docker container and associated configuration. Syntax is like this:
+
+  machine foo
+  foo docker container-name image-name [docker-run-args...]
+
+You can also specify the source path for a docker image:
+
+  machine foo
+  foo docker_source /path/to/source image-name
+EOF
+
+motley_defcommand docker
+motley_defcommand docker_source
+
+motley_docker() {
+  echo "docker: $@"
+}
+
+motley_docker_source() {
+  echo "docker_source: $@"
+}

@@ -1,0 +1,17 @@
+#!/bin/bash
+# Motley xpra configuration
+motley_defmodule xpra <<'EOF'
+Xpra command
+Adds a named bash alias to connect an xpra session over an SSH tunnel. For
+example:
+
+  machine foo
+  foo ssh f
+  f xpra F :100 --no-keyboard-sync      # aliases F to connect to f:100
+EOF
+
+motley_defcommand xpra
+
+motley_xpra() {
+  echo "xpra: $@"
+}

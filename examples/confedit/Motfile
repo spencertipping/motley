@@ -1,0 +1,13 @@
+#!/bin/bash
+# An unusual motfile in that it uses the confedit functions directly.
+
+motley_confedit f1 ./foo
+motley_confedit f2 ./foo
+
+echo 'test 1' >> $f1
+echo 'test 2' >> $f2
+echo 'test 3' >> $f1
+motley_confedit_commit f1
+
+echo 'test 4' >> $f2
+motley_confedit_commit f2

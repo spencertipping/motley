@@ -1,0 +1,12 @@
+#!/bin/bash
+# Motley zerovpn configuration
+motley_defmodule zerovpn <<'EOF'
+Zerovpn command
+Defines a zerovpn client connection that will be stored as a bash alias.
+EOF
+
+motley_defcommand zerovpn
+
+motley_zerovpn() {
+  echo "zerovpn: $@"
+}

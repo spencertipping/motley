@@ -1,0 +1,25 @@
+#!/bin/bash
+# Motley sshfs command
+motley_defmodule sshfs <<'EOF'
+SSHFS command
+Creates a named bash alias to cd to a specified location on a host. For
+example:
+
+  machine foo
+  machine bar
+  bar sshfs v1:/mnt/vol1 v2:/mnt/vol2
+
+This will create two aliases on all machines except bar:
+
+  alias v1='cd bar:/mnt/vol1'
+  alias v2='cd bar:/mnt/vol2'
+
+Note that this requires a custom CD script like
+https://github.com/spencertipping/cd to be useful.
+EOF
+
+motley_defcommand sshfs
+
+motley_sshfs() {
+  echo "sshfs: $@"
+}
