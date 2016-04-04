@@ -17,29 +17,29 @@ EOF
 motley_defmode conf
 motley_defcommand zerovpn
 
-motley_zerovpn_conf_init() {
+motley_zerovpn_init_conf() {
   motley_confedit motley_zerovpn_bashaliases ~/.bash_aliases
 }
 
-motley_zerovpn_conf_end() {
+motley_zerovpn_end_conf() {
   motley_confedit_commit motley_zerovpn_bashaliases
 }
 
-motley_zerovpn() {
+motley_zerovpn_conf() {
   local machine_key=$1
   local machine=$2
   local name=$3
   shift 3
 
-  local quoted=
-  for a; do
-    quoted="$quoted $(printf %q "$a")"
-  done
-
   # The zerovpn alias belongs just to the machine being addressed; other
   # machines can ignore it.
   if [[ $MOTLEY_SELF = $machine ]]; then
-    echo "alias $(motley_alias_name "$name")='$quoted'" \
+    local quoted=
+    for a; do
+      quoted="$quoted $(printf %q "$a")"
+    done
+
+    echo "alias $(motley_alias_name "$name")=\"zerovpn $quoted\"" \
       >> "$motley_zerovpn_bashaliases"
   fi
 }

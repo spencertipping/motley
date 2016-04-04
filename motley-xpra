@@ -28,6 +28,6 @@ motley_xpra_conf() {
   local display=$4
   shift 4
 
-  echo "alias $(motley_alias_name $name)='xpra attach ssh:$name$display $*'" \
+  echo "alias $(motley_alias_name $name)='xpra attach ssh:$machine$display $*'" \
     >> "$motley_xpra_bashaliases"
 }

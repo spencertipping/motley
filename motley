@@ -44,6 +44,7 @@ machine() {
   local machine=$1
   local machine_key=${machine//[^A-Za-z0-9]/_}
   shift
+
   MOTLEY_MACHINES="$MOTLEY_MACHINES $machine"
   eval "$machine_key() {
     motley_\${MOTLEY_MODE}_machine \"$machine_key\" \"$machine\" \"\$@\"
@@ -53,6 +54,18 @@ machine() {
     motley_machine_meta_$1 "$machine_key" "$machine" "$2"
     shift 2
   done
+}
+
+motley_machine_origin() {
+  local origin=$1
+  while eval "[[ -n \$MOTLEY_MACHINE_ORIGIN_${origin//[^A-Za-z0-9]/_} ]]"; do
+    eval "origin=\$MOTLEY_MACHINE_ORIGIN_${origin//[^A-Za-z0-9]/_}"
+  done
+  echo "$origin"
+}
+
+motley_machine_set_origin() {
+  eval "MOTLEY_MACHINE_ORIGIN_${1//[^A-Za-z0-9]/_}=\$2"
 }
 
 # Informational modes (these bypass the Motfile)

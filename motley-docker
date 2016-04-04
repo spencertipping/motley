@@ -55,8 +55,7 @@ motley_docker_drun() {
     || motley_machine_applies "$machine" "${MOTLEY_ARGS[@]}" \
     && ssh "$machine" "\
          if test -z \"\`docker ps -aq --filter name='$cname'\`\"; then \
-           docker run -d --name '$cname' --hostname '$cname' \
-                  $quoted_args '$iname'
+           docker run -d --name '$cname' $quoted_args '$iname'
          else
            echo 'motley: skipping running container $cname [$iname]'
          fi"
@@ -68,6 +67,5 @@ motley_docker_drm() {
   local cname=$3
 
   motley_machine_applies "$machine" "${MOTLEY_ARGS[@]}" \
-    && ssh "$machine" "\
-         docker rm -f \`docker ps -aq --filter name='$cname'\`"
+    && ssh "$machine" "docker rm -f \`docker ps -aq --filter name='$cname'\`"
 }

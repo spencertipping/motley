@@ -55,7 +55,10 @@ motley_ssh_all() {
   local machine=$2
   local mode=$3
   local ssh_alias=$4
-  [[ "${ssh_alias#-}" = "$ssh_alias" ]] && machine $ssh_alias
+  if [[ "${ssh_alias#-}" = "$ssh_alias" ]]; then
+    machine $ssh_alias
+    motley_machine_set_origin $ssh_alias $machine
+  fi
 }
 
 motley_ssh_conf() {
@@ -77,7 +80,7 @@ motley_ssh_conf() {
 
   {
     echo "Host $ssh_name"
-    echo "  HostName $machine"
+    echo "  HostName $(motley_machine_origin $machine)"
     motley_ssh_options_to_config "$@"
   } >> "$motley_ssh_config"
 }
