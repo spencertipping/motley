@@ -1,0 +1,21 @@
+#!/bin/bash
+# Motley crontab command definition
+motley_defmodule crontab <<'EOF'
+Crontab command
+Sets the crontab of a machine.
+
+  machine foo
+  foo crontab <<'EOF'
+  * * * * * motley run
+  EOF
+EOF
+
+motley_defmode conf
+motley_defcommand crontab
+
+motley_crontab_conf() {
+  local machine_key=$1
+  local machine=$2
+  shift 2
+  [[ $MOTLEY_SELF = $machine ]] && crontab -
+}

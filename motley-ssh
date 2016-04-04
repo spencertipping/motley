@@ -17,6 +17,12 @@ Naming SSH connections is done by creating entries in ~/.ssh/config. Any such
 names will have corresponding bash aliases.
 EOF
 
+# Unrelated wrapper function that provides some verbosity:
+motley_ssh() {
+  echo "motley: ssh $1 ..." >&2
+  ssh "$@"
+}
+
 motley_defmode conf
 motley_defcommand ssh
 

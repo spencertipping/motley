@@ -33,7 +33,7 @@ MOTLEY_INTERVAL_CURRENT=
 
 motley_defcommand interval_internal
 
-motley_interval_internal_init_run() {
+motley_interval_internal_init_all() {
   # Just some standard intervals defined by changes in fields: "when the hour
   # changes", "when the day changes", etc.
   interval hourly  '((dh))'

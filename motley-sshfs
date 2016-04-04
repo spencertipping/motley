@@ -20,6 +20,24 @@ EOF
 
 motley_defcommand sshfs
 
-motley_sshfs() {
-  echo "sshfs: $@"
+motley_sshfs_init_conf() {
+  motley_confedit motley_sshfs_aliases ~/.bash_aliases
+}
+
+motley_sshfs_end_conf() {
+  motley_confedit_commit motley_sshfs_aliases
+}
+
+motley_sshfs_conf() {
+  local machine_key=$1
+  local machine=$2
+  shift 2
+
+  if [[ $MOTLEY_SELF != $machine ]]; then
+    for mapping; do
+      local name=${mapping%%:*}
+      local path="$machine:${mapping#*:}"
+      echo "alias $(motley_alias_name "$name")=\"cd $(printf %q "$path")\""
+    done >> "$motley_sshfs_aliases"
+  fi
 }

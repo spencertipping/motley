@@ -112,6 +112,8 @@ motley_defcommand() {
     MOTLEY_COMMANDS="$MOTLEY_COMMANDS $c"
     for m in $MOTLEY_MODES; do
       eval "motley_${c}_all()       { :; }
+            motley_${c}_init_all()  { :; }
+            motley_${c}_end_all()   { :; }
             motley_${c}_init_${m}() { :; }
             motley_${c}_${m}()      { :; }
             motley_${c}_end_${m}()  { :; }"
@@ -212,6 +214,7 @@ MOTLEY_ARGS=( "$@" )
 
 motley_${MOTLEY_MODE}_init
 for c in $MOTLEY_COMMANDS; do
+  motley_${c}_init_all
   motley_${c}_init_${MOTLEY_MODE}
 done
 
@@ -223,5 +226,6 @@ fi
 
 motley_${MOTLEY_MODE}_end
 for c in $MOTLEY_COMMANDS; do
+  motley_${c}_end_all
   motley_${c}_end_${MOTLEY_MODE}
 done

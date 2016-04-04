@@ -1,0 +1,32 @@
+#!/bin/bash
+# Motley docker command definition
+motley_defmodule git <<'EOF'
+Git command
+Defines a git repository that will be cloned or pulled when you use the gpull
+mode.
+EOF
+
+motley_defmode gpull
+motley_defcommand git
+
+motley_git_gpull() {
+  local machine_key=$1
+  local machine=$2
+  local url=$3
+  local path=$4
+  shift 4
+
+  local args=
+  for a; do
+    args="$args $(printf %q "$a")"
+  done
+
+  (( !${#MOTLEY_ARGS[@]} )) \
+    || motley_machine_applies "$machine" "${MOTLEY_ARGS[@]}" \
+    && motley_ssh "$machine" "\
+         if [[ -d $(printf %q "$path/.git") ]]; then
+           cd $(printf %q "$path") && git pull
+         else
+           git clone $(printf %q "$url") $(printf %q "$path") $args
+         fi"
+}
