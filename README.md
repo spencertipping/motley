@@ -26,7 +26,7 @@ foo alias vpn zerovpn $vfoo -i ~/.ssh/vpn-key -p 2222 vpn@$ec2
 bar alias vpn zerovpn $vbar -i ~/.ssh/vpn-key -p 2222 vpn@$ec2
 
 # Tell foo how to build the spiff-o-matic:latest docker image
-foo docker-source ~/spiff-o-matic spiff-o-matic:latest
+foo docker_source ~/spiff-o-matic spiff-o-matic:latest
 
 # A bunch of containers from the image
 for i in `seq 8`; do
@@ -42,11 +42,39 @@ done
 Now use the motfile:
 
 ```sh
-$ motley modules        # print all active modules
-$ motley ls             # inspect all configurations
-$ motley init           # configure local machine
-$ motley start          # start all dockerized things, configure all machines
-$ motley stop           # stop dockerized things, undo configurations
-$ motley status         # check in with machines, print status
-$ motley run            # do ongoing stuff; run this from a crontab
+$ motley conf           # update ~/.bash_aliases and ~/.ssh/config
+$ motley dbuild         # build docker images (see motley -h docker)
+$ motley gpull          # pull all git repos (see motley -h git)
+$ motley drun           # create docker containers
+
+$ motley -h
+motley usage:
+  motley [-f /path/to/Motfile] mode [args...]
+  motley -h [topic]
+
+where modes are
+- modes
+- modules
+- machines
+- ls
+- conf
+- dbuild
+- dpull
+- drun
+- drm
+- gpull
+
+help topics (motley -h topic):
+- confedit
+- crontab
+- docker
+- git
+- interval
+- machine_alias
+- machine_tag
+- ssh
+- sshfs
+- templates
+- xpra
+- zerovpn
 ```
