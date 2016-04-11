@@ -1,0 +1,35 @@
+#!/bin/bash
+# Motley path command
+motley_defmodule path <<'EOF'
+Path command
+Adds entries to $PATH for the addressed machine. For example:
+
+  machine foo
+  foo path /home/me/custom-bin
+
+This adds the following line to ~/.bash_aliases:
+
+  export PATH="$PATH:"'/home/me/custom-bin'
+EOF
+
+motley_defcommand path
+
+motley_path_init_conf() {
+  motley_confedit motley_path_aliases ~/.bash_aliases
+}
+
+motley_path_end_conf() {
+  motley_confedit_commit motley_path_aliases
+}
+
+motley_path_conf() {
+  local machine_key=$1
+  local machine=$2
+  shift 2
+
+  if [[ $MOTLEY_SELF = $machine ]]; then
+    for p; do
+      echo "export PATH=\"\$PATH:\"'$p'"
+    done >> "$motley_path_aliases"
+  fi
+}
