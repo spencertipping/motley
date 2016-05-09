@@ -38,6 +38,7 @@ motley_sshfs_conf() {
       local name=${mapping%%:*}
       local path="$machine:${mapping#*:}"
       echo "alias $(motley_alias_name "$name")=\"cd $(printf %q "$path")\""
+      echo "export $name=\"$path\""
     done >> "$motley_sshfs_aliases"
   fi
 }
