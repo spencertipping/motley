@@ -88,7 +88,7 @@ motley_modules_init() {
 }
 
 # Core operative modes
-motley_defmode machines ls
+motley_defmode machines ls run
 
 motley_machines_end() {
   for m in $MOTLEY_MACHINES; do
