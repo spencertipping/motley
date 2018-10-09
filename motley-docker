@@ -51,10 +51,14 @@ motley_docker_source_dbuild() {
   local machine=$2
   local path=$3
   local iname=$4
+  shift
+  shift
+  shift
+  shift
 
   (( !${#MOTLEY_ARGS[@]} )) \
     || motley_machine_applies "$machine" "${MOTLEY_ARGS[@]}" \
-    && motley_ssh "$machine" "docker build -t '$iname' $(printf %q "$path")"
+    && motley_ssh "$machine" "docker build $@ -t '$iname' $(printf %q "$path")"
 }
 
 motley_docker_drun() {
